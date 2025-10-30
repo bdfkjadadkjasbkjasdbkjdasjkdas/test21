@@ -660,6 +660,7 @@
                     </div>
                     <h2 class="user-name" id="userName">Имя</h2>
                     
+                    <!-- ЭТОТ БЛОК ДОЛЖЕН БЫТЬ -->
                     <div class="profile-link-card">
                         <h3><i class="fas fa-share-alt"></i> Ваша ссылка для отзывов</h3>
                         <div class="link-container">
@@ -747,21 +748,12 @@
     </div>
 
     <script>
-        // Простая база данных в LocalStorage
+        // База данных
         let users = JSON.parse(localStorage.getItem('users')) || [];
         let feedbacks = JSON.parse(localStorage.getItem('feedbacks')) || [];
         let profileViews = JSON.parse(localStorage.getItem('profileViews')) || {};
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
         let currentRating = 0;
-
-        // DOM элементы
-        const registerSection = document.getElementById('registerSection');
-        const loginSection = document.getElementById('loginSection');
-        const userSection = document.getElementById('userSection');
-        const feedbackSection = document.getElementById('feedbackSection');
-        const feedbackModal = document.getElementById('feedbackModal');
-        const successMessage = document.getElementById('successMessage');
-        const errorMessage = document.getElementById('errorMessage');
 
         // Показать сообщение
         function showMessage(element, text) {
@@ -772,32 +764,32 @@
 
         // Показать регистрацию
         function showRegister() {
-            registerSection.style.display = 'block';
-            loginSection.style.display = 'none';
-            userSection.style.display = 'none';
-            feedbackSection.style.display = 'none';
+            document.getElementById('registerSection').style.display = 'block';
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('userSection').style.display = 'none';
+            document.getElementById('feedbackSection').style.display = 'none';
         }
 
         // Показать вход
         function showLogin() {
-            registerSection.style.display = 'none';
-            loginSection.style.display = 'block';
-            userSection.style.display = 'none';
-            feedbackSection.style.display = 'none';
+            document.getElementById('registerSection').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('userSection').style.display = 'none';
+            document.getElementById('feedbackSection').style.display = 'none';
         }
 
         // Показать профиль пользователя
         function showUser(user) {
-            registerSection.style.display = 'none';
-            loginSection.style.display = 'none';
-            userSection.style.display = 'block';
-            feedbackSection.style.display = 'none';
+            document.getElementById('registerSection').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('userSection').style.display = 'block';
+            document.getElementById('feedbackSection').style.display = 'none';
 
             document.getElementById('userName').textContent = user.username;
             const avatarUrl = `https://i.pravatar.cc/150?u=${user.id}`;
             document.getElementById('userAvatar').src = avatarUrl;
 
-            // Обновляем ссылку
+            // ОБНОВЛЯЕМ ССЫЛКУ - ЭТО ВАЖНО!
             const fullLink = `${window.location.origin}${window.location.pathname}?profile=${user.profileLink}`;
             document.getElementById('profileLinkDisplay').value = fullLink;
             
@@ -809,8 +801,8 @@
 
         // Показать отзывы
         function showFeedback() {
-            userSection.style.display = 'none';
-            feedbackSection.style.display = 'block';
+            document.getElementById('userSection').style.display = 'none';
+            document.getElementById('feedbackSection').style.display = 'block';
 
             const userFeedbacks = feedbacks.filter(f => f.profileLink === currentUser.profileLink)
                                           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -845,17 +837,17 @@
             });
         }
 
-        // Копировать ссылку
+        // Копировать ссылку - ЭТА ФУНКЦИЯ ДОЛЖНА РАБОТАТЬ
         function copyProfileLink() {
             const linkInput = document.getElementById('profileLinkDisplay');
             linkInput.select();
             document.execCommand('copy');
-            showMessage(successMessage, 'Ссылка скопирована!');
+            showMessage(document.getElementById('successMessage'), '✅ Ссылка скопирована!');
         }
 
         // Закрыть модальное окно
         function closeModal() {
-            feedbackModal.style.display = 'none';
+            document.getElementById('feedbackModal').style.display = 'none';
             document.getElementById('feedbackForm').reset();
             currentRating = 0;
             setRating(0);
@@ -866,7 +858,7 @@
             currentUser = null;
             localStorage.removeItem('currentUser');
             showRegister();
-            showMessage(successMessage, 'Вы вышли из системы');
+            showMessage(document.getElementById('successMessage'), 'Вы вышли из системы');
         }
 
         // Регистрация
@@ -905,11 +897,11 @@
                 localStorage.setItem('currentUser', JSON.stringify(newUser));
                 
                 showUser(newUser);
-                showMessage(successMessage, 'Профиль создан!');
+                showMessage(document.getElementById('successMessage'), '🎉 Профиль создан!');
                 this.reset();
 
             } catch (error) {
-                showMessage(errorMessage, error.message);
+                showMessage(document.getElementById('errorMessage'), error.message);
             }
         });
 
@@ -927,10 +919,10 @@
                 currentUser = user;
                 localStorage.setItem('currentUser', JSON.stringify(user));
                 showUser(user);
-                showMessage(successMessage, 'Вход выполнен!');
+                showMessage(document.getElementById('successMessage'), '✅ Вход выполнен!');
                 this.reset();
             } else {
-                showMessage(errorMessage, 'Неверные данные');
+                showMessage(document.getElementById('errorMessage'), 'Неверные данные');
             }
         });
 
@@ -960,7 +952,7 @@
                 profileViews[profileLink]++;
                 localStorage.setItem('profileViews', JSON.stringify(profileViews));
 
-                showMessage(successMessage, 'Отзыв отправлен!');
+                showMessage(document.getElementById('successMessage'), '✅ Отзыв отправлен!');
                 closeModal();
             }
         });
@@ -973,14 +965,14 @@
             if (profileLink) {
                 const user = users.find(u => u.profileLink === profileLink);
                 if (user) {
-                    feedbackModal.style.display = 'flex';
+                    document.getElementById('feedbackModal').style.display = 'flex';
                     if (!profileViews[profileLink]) {
                         profileViews[profileLink] = 0;
                     }
                     profileViews[profileLink]++;
                     localStorage.setItem('profileViews', JSON.stringify(profileViews));
                 } else {
-                    showMessage(errorMessage, 'Профиль не найден');
+                    showMessage(document.getElementById('errorMessage'), 'Профиль не найден');
                 }
             }
         }
