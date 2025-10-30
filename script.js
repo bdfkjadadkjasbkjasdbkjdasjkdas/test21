@@ -19,6 +19,7 @@ let currentRating = 0;
 // Создать новую bin
 async function createBin() {
     try {
+        console.log('Creating new bin...');
         const response = await fetch(JSONBIN_API_URL, {
             method: 'POST',
             headers: {
@@ -28,6 +29,10 @@ async function createBin() {
             },
             body: JSON.stringify(cloudData)
         });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
         const result = await response.json();
         BIN_ID = result.metadata.id;
@@ -43,11 +48,15 @@ async function createBin() {
 // Загрузить данные из bin
 async function loadFromCloud() {
     try {
+        console.log('Loading from cloud...');
+        
         if (!BIN_ID) {
             BIN_ID = localStorage.getItem('jsonbin_id');
+            console.log('BIN_ID from storage:', BIN_ID);
         }
         
         if (!BIN_ID) {
+            console.log('No BIN_ID, creating new bin...');
             return await createBin();
         }
         
@@ -57,12 +66,17 @@ async function loadFromCloud() {
             }
         });
         
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
         cloudData = result.record;
-        console.log('Data loaded from cloud:', cloudData);
+        console.log('Data loaded from cloud. Users:', Object.keys(cloudData.users));
         return true;
     } catch (error) {
         console.error('Error loading from cloud:', error);
+        console.log('Creating new bin due to error...');
         return await createBin();
     }
 }
@@ -83,8 +97,12 @@ async function saveToCloud() {
             body: JSON.stringify(cloudData)
         });
         
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
-        console.log('Data saved to cloud:', result);
+        console.log('Data saved to cloud');
         return true;
     } catch (error) {
         console.error('Error saving to cloud:', error);
@@ -96,6 +114,7 @@ async function saveToCloud() {
 
 // Получить пользователя по ссылке
 function getUserByProfileLink(profileLink) {
+    console.log('Looking for profile:', profileLink, 'Available users:', Object.keys(cloudData.users));
     return cloudData.users[profileLink];
 }
 
@@ -111,6 +130,7 @@ async function createUser(userData) {
     const success = await saveToCloud();
     
     if (success) {
+        console.log('User created successfully:', userData.profileLink);
         return newUser;
     } else {
         throw new Error('Ошибка сохранения в облако');
@@ -332,17 +352,22 @@ document.getElementById('feedbackForm').addEventListener('submit', async functio
             showMessage(document.getElementById('successMessage'), '✅ Отзыв отправлен!');
             closeModal();
         } else {
-            showMessage(document.getElementById('errorMessage'), 'Профиль не найден');
+            showMessage(document.getElementById('errorMessage'), `Профиль "${profileLink}" не найден. Создайте его сначала.`);
         }
     }
 });
 
 // Проверка URL параметров
-function checkUrlParams() {
+async function checkUrlParams() {
     const urlParams = new URLSearchParams(window.location.search);
     const profileLink = urlParams.get('profile');
 
     if (profileLink) {
+        console.log('Checking URL param:', profileLink);
+        
+        // Ждем загрузки данных из облака
+        await loadFromCloud();
+        
         const user = getUserByProfileLink(profileLink);
         if (user) {
             document.getElementById('feedbackModal').style.display = 'flex';
@@ -373,7 +398,7 @@ async function init() {
         showRegister();
     }
     
-    checkUrlParams();
+    await checkUrlParams();
 }
 
 // Запуск при загрузке
