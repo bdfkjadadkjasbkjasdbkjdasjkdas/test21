@@ -3,7 +3,7 @@ const SUPABASE_URL = 'https://ztoswmpulbewadjvdfuu.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0b3N3bXB1bGJld2FkanZkZnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MzQ0OTgsImV4cCI6MjA3NzQxMDQ5OH0.GY6yJ6zKrH-rJbtUmhAe5SJ3UE8AxADtTf1a2uwL7ys';
 
 // Создаем клиент Supabase
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Текущий пользователь
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
@@ -14,7 +14,7 @@ let currentRating = 0;
 // Создать пользователя
 async function createUser(userData) {
     try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
             .from('users')
             .insert([
                 {
@@ -36,13 +36,13 @@ async function createUser(userData) {
 // Получить пользователя по ссылке
 async function getUserByProfileLink(profileLink) {
     try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
             .from('users')
             .select('*')
             .eq('profile_link', profileLink)
             .single();
 
-        if (error && error.code !== 'PGRST116') throw error; // PGRST116 - не найден
+        if (error && error.code !== 'PGRST116') throw error;
         return data;
     } catch (error) {
         console.error('Error getting user:', error);
@@ -53,7 +53,7 @@ async function getUserByProfileLink(profileLink) {
 // Добавить отзыв
 async function addFeedback(profileLink, feedbackData) {
     try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
             .from('feedbacks')
             .insert([
                 {
@@ -80,7 +80,7 @@ async function addFeedback(profileLink, feedbackData) {
 async function incrementProfileViews(profileLink) {
     try {
         // Сначала проверяем существует ли запись
-        const { data: existing } = await supabaseClient
+        const { data: existing } = await supabase
             .from('profile_views')
             .select('*')
             .eq('profile_link', profileLink)
@@ -88,14 +88,14 @@ async function incrementProfileViews(profileLink) {
 
         if (existing) {
             // Обновляем существующую запись
-            const { error } = await supabaseClient
+            const { error } = await supabase
                 .from('profile_views')
                 .update({ views_count: existing.views_count + 1 })
                 .eq('profile_link', profileLink);
             if (error) throw error;
         } else {
             // Создаем новую запись
-            const { error } = await supabaseClient
+            const { error } = await supabase
                 .from('profile_views')
                 .insert([{ profile_link: profileLink, views_count: 1 }]);
             if (error) throw error;
@@ -108,7 +108,7 @@ async function incrementProfileViews(profileLink) {
 // Получить отзывы пользователя
 async function getFeedbacks(profileLink) {
     try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
             .from('feedbacks')
             .select('*')
             .eq('profile_link', profileLink)
@@ -125,7 +125,7 @@ async function getFeedbacks(profileLink) {
 // Получить количество просмотров
 async function getProfileViews(profileLink) {
     try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
             .from('profile_views')
             .select('views_count')
             .eq('profile_link', profileLink)
