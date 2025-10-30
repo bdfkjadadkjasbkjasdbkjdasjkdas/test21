@@ -6,7 +6,587 @@
     <title>FeedbackMe | Анонимные отзывы</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        :root {
+            --primary: #0088cc;
+            --primary-dark: #006699;
+            --primary-light: #2aabee;
+            --secondary: #8B5CF6;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --text: #334155;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+            --radius: 16px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: all 0.2s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            transition: var(--transition);
+            animation: slideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: cover;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .content {
+            padding: 40px 35px;
+        }
+
+        .content h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 14px;
+            transition: var(--transition-fast);
+        }
+
+        .form-group i {
+            margin-right: 8px;
+            width: 16px;
+            color: var(--primary);
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 400;
+            transition: var(--transition-fast);
+            background: var(--light);
+            resize: vertical;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 136, 204, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .link-input-container {
+            display: flex;
+            align-items: center;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--light);
+            overflow: hidden;
+        }
+
+        .link-prefix {
+            padding: 14px 12px;
+            background: #f1f5f9;
+            color: var(--text-light);
+            font-weight: 500;
+            border-right: 2px solid var(--border);
+        }
+
+        .link-input-container input {
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .hint {
+            color: var(--text-light);
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 136, 204, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary) 0%, #a78bfa 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--error) 0%, #f87171 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .user-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            border: 4px solid var(--primary);
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: var(--transition);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .profile-link-card {
+            background: linear-gradient(135deg, var(--light) 0%, #f1f5f9 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .profile-link-card h3 {
+            margin-bottom: 15px;
+            color: var(--dark);
+            font-size: 18px;
+        }
+
+        .link-container {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+
+        .link-display {
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: var(--text);
+            flex: 1;
+            padding: 8px 12px;
+        }
+
+        .btn-copy {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn-copy:hover {
+            background: var(--primary-dark);
+        }
+
+        .link-hint {
+            color: var(--text-light);
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 25px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .auth-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .auth-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .feedback-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .feedback-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .feedback-item {
+            background: var(--light);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        .feedback-text {
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .feedback-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .feedback-rating {
+            color: #f59e0b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--border);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        .star {
+            font-size: 24px;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .star:hover, .star.active {
+            color: #f59e0b;
+        }
+
+        .anonymous-notice {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--secondary);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+                margin: 10px;
+            }
+            .content {
+                padding: 30px 25px;
+            }
+            .header {
+                padding: 30px 20px;
+            }
+            .header h1 {
+                font-size: 28px;
+            }
+            .stats {
+                gap: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -16,33 +596,31 @@
         </div>
 
         <div class="content">
-            <!-- Сообщения -->
             <div id="successMessage" class="message success-message"></div>
             <div id="errorMessage" class="message error-message"></div>
 
-            <!-- Блок регистрации -->
             <div id="registerSection">
                 <h2>Создать профиль для отзывов</h2>
                 <form id="registerForm">
                     <div class="form-group">
                         <label for="regUsername"><i class="fas fa-user"></i> Ваше имя</label>
-                        <input type="text" id="regUsername" name="username" required autocomplete="off" placeholder="Как к вам обращаться">
+                        <input type="text" id="regUsername" name="username" required placeholder="Как к вам обращаться">
                     </div>
                     <div class="form-group">
                         <label for="regProfileLink"><i class="fas fa-link"></i> Ваша ссылка для отзывов</label>
                         <div class="link-input-container">
-                            <span class="link-prefix">feedbackme.ru/</span>
-                            <input type="text" id="regProfileLink" name="profileLink" required autocomplete="off" placeholder="ivanov">
+                            <span class="link-prefix">feedback/</span>
+                            <input type="text" id="regProfileLink" name="profileLink" required placeholder="ivanov">
                         </div>
                         <small class="hint">Только английские буквы, цифры и дефисы</small>
                     </div>
                     <div class="form-group">
-                        <label for="regEmail"><i class="fas fa-envelope"></i> Email (для уведомлений)</label>
-                        <input type="email" id="regEmail" name="email" required autocomplete="off" placeholder="your@email.com">
+                        <label for="regEmail"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="regEmail" name="email" required placeholder="your@email.com">
                     </div>
                     <div class="form-group">
                         <label for="regPassword"><i class="fas fa-lock"></i> Пароль</label>
-                        <input type="password" id="regPassword" name="password" required autocomplete="new-password" placeholder="Не менее 6 символов">
+                        <input type="password" id="regPassword" name="password" required placeholder="Не менее 6 символов">
                     </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-user-plus"></i> Создать профиль
@@ -50,130 +628,383 @@
                 </form>
                 <div class="auth-switch">
                     <span>Уже есть профиль? </span>
-                    <a class="auth-link" id="showLoginLink">Войдите здесь</a>
+                    <a class="auth-link" onclick="showLogin()">Войдите здесь</a>
                 </div>
             </div>
 
-            <!-- Блок входа -->
             <div id="loginSection" style="display: none;">
                 <h2>Вход в профиль</h2>
                 <form id="loginForm">
                     <div class="form-group">
-                        <label for="loginUsername"><i class="fas fa-user"></i> Имя пользователя или Email</label>
-                        <input type="text" id="loginUsername" name="username" required autocomplete="off">
+                        <label for="loginUsername"><i class="fas fa-user"></i> Имя или Email</label>
+                        <input type="text" id="loginUsername" name="username" required>
                     </div>
                     <div class="form-group">
                         <label for="loginPassword"><i class="fas fa-lock"></i> Пароль</label>
-                        <input type="password" id="loginPassword" name="password" required autocomplete="current-password">
+                        <input type="password" id="loginPassword" name="password" required>
                     </div>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt"></i> Войти в профиль
+                        <i class="fas fa-sign-in-alt"></i> Войти
                     </button>
                 </form>
                 <div class="auth-switch">
                     <span>Нет профиля? </span>
-                    <a class="auth-link" id="showRegisterLink">Создайте его здесь</a>
+                    <a class="auth-link" onclick="showRegister()">Создайте здесь</a>
                 </div>
             </div>
 
-            <!-- Блок пользователя -->
             <div id="userSection" style="display: none;">
                 <div class="user-info">
                     <div class="avatar">
-                        <img src="" alt="User Avatar" id="userAvatar">
+                        <img src="" alt="Avatar" id="userAvatar">
                     </div>
-                    <h2 class="user-name" id="userName">Имя пользователя</h2>
+                    <h2 class="user-name" id="userName">Имя</h2>
                     
                     <div class="profile-link-card">
                         <h3><i class="fas fa-share-alt"></i> Ваша ссылка для отзывов</h3>
                         <div class="link-container">
                             <input type="text" id="profileLinkDisplay" readonly class="link-display">
-                            <button class="btn-copy" id="copyLinkBtn" data-tooltip="Скопировать ссылку">
+                            <button class="btn-copy" onclick="copyProfileLink()">
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
-                        <p class="link-hint">Отправьте эту ссылку друзьям и коллегам для анонимных отзывов</p>
+                        <p class="link-hint">Отправьте эту ссылку друзьям для анонимных отзывов</p>
                     </div>
 
                     <div class="stats">
                         <div class="stat-item">
                             <div class="stat-number" id="feedbackCount">0</div>
-                            <div class="stat-label">Отзывов получено</div>
+                            <div class="stat-label">Отзывов</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-number" id="profileViews">0</div>
-                            <div class="stat-label">Просмотров профиля</div>
+                            <div class="stat-label">Просмотров</div>
                         </div>
                     </div>
 
-                    <button class="btn btn-secondary" id="viewFeedbackBtn">
-                        <i class="fas fa-comments"></i> Посмотреть мои отзывы
+                    <button class="btn btn-secondary" onclick="showFeedback()">
+                        <i class="fas fa-comments"></i> Мои отзывы
                     </button>
                     
-                    <button class="btn btn-danger" id="logoutBtn">
+                    <button class="btn btn-danger" onclick="logout()">
                         <i class="fas fa-sign-out-alt"></i> Выйти
                     </button>
                 </div>
             </div>
 
-            <!-- Блок отзывов -->
             <div id="feedbackSection" style="display: none;">
                 <div class="feedback-header">
-                    <button class="btn-back" id="backToProfileBtn">
-                        <i class="fas fa-arrow-left"></i> Назад к профилю
+                    <button class="btn-back" onclick="showUser(currentUser)">
+                        <i class="fas fa-arrow-left"></i> Назад
                     </button>
-                    <h2>Отзывы о вас</h2>
+                    <h2>Ваши отзывы</h2>
                 </div>
                 
-                <div class="feedback-list" id="feedbackList">
-                    <!-- Отзывы будут здесь -->
-                </div>
+                <div class="feedback-list" id="feedbackList"></div>
                 
                 <div class="empty-state" id="emptyFeedback" style="display: none;">
                     <i class="fas fa-comments"></i>
                     <h3>Пока нет отзывов</h3>
-                    <p>Поделитесь своей ссылкой с друзьями и коллегами, чтобы получить первые отзывы</p>
+                    <p>Поделитесь ссылкой чтобы получить первые отзывы</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно для оставления отзыва -->
-    <div id="feedbackModal" class="modal" style="display: none;">
+    <div id="feedbackModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Оставить анонимный отзыв</h3>
-                <button class="modal-close" id="closeModalBtn">&times;</button>
+                <h3>Оставить отзыв</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="feedbackForm">
                     <div class="form-group">
                         <label for="feedbackText"><i class="fas fa-comment"></i> Ваш отзыв</label>
-                        <textarea id="feedbackText" name="feedback" required placeholder="Что вы думаете об этом человеке?..." rows="5"></textarea>
+                        <textarea id="feedbackText" name="feedback" required placeholder="Что вы думаете?..." rows="5"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="feedbackRating"><i class="fas fa-star"></i> Оценка (опционально)</label>
+                        <label><i class="fas fa-star"></i> Оценка</label>
                         <div class="rating-stars">
-                            <span class="star" data-rating="1">★</span>
-                            <span class="star" data-rating="2">★</span>
-                            <span class="star" data-rating="3">★</span>
-                            <span class="star" data-rating="4">★</span>
-                            <span class="star" data-rating="5">★</span>
+                            <span class="star" onclick="setRating(1)">★</span>
+                            <span class="star" onclick="setRating(2)">★</span>
+                            <span class="star" onclick="setRating(3)">★</span>
+                            <span class="star" onclick="setRating(4)">★</span>
+                            <span class="star" onclick="setRating(5)">★</span>
                         </div>
-                        <input type="hidden" id="feedbackRating" name="rating" value="0">
+                        <input type="hidden" id="feedbackRating" value="0">
                     </div>
                     <div class="anonymous-notice">
                         <i class="fas fa-user-secret"></i>
-                        <span>Этот отзыв будет полностью анонимным</span>
+                        <span>Отзыв будет анонимным</span>
                     </div>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i> Отправить отзыв
+                        <i class="fas fa-paper-plane"></i> Отправить
                     </button>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Простая база данных в LocalStorage
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let feedbacks = JSON.parse(localStorage.getItem('feedbacks')) || [];
+        let profileViews = JSON.parse(localStorage.getItem('profileViews')) || {};
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        let currentRating = 0;
+
+        // DOM элементы
+        const registerSection = document.getElementById('registerSection');
+        const loginSection = document.getElementById('loginSection');
+        const userSection = document.getElementById('userSection');
+        const feedbackSection = document.getElementById('feedbackSection');
+        const feedbackModal = document.getElementById('feedbackModal');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Показать сообщение
+        function showMessage(element, text) {
+            element.textContent = text;
+            element.style.display = 'block';
+            setTimeout(() => element.style.display = 'none', 4000);
+        }
+
+        // Показать регистрацию
+        function showRegister() {
+            registerSection.style.display = 'block';
+            loginSection.style.display = 'none';
+            userSection.style.display = 'none';
+            feedbackSection.style.display = 'none';
+        }
+
+        // Показать вход
+        function showLogin() {
+            registerSection.style.display = 'none';
+            loginSection.style.display = 'block';
+            userSection.style.display = 'none';
+            feedbackSection.style.display = 'none';
+        }
+
+        // Показать профиль пользователя
+        function showUser(user) {
+            registerSection.style.display = 'none';
+            loginSection.style.display = 'none';
+            userSection.style.display = 'block';
+            feedbackSection.style.display = 'none';
+
+            document.getElementById('userName').textContent = user.username;
+            const avatarUrl = `https://i.pravatar.cc/150?u=${user.id}`;
+            document.getElementById('userAvatar').src = avatarUrl;
+
+            // Обновляем ссылку
+            const fullLink = `${window.location.origin}${window.location.pathname}?profile=${user.profileLink}`;
+            document.getElementById('profileLinkDisplay').value = fullLink;
+            
+            // Обновляем статистику
+            const userFeedbacks = feedbacks.filter(f => f.profileLink === user.profileLink);
+            document.getElementById('feedbackCount').textContent = userFeedbacks.length;
+            document.getElementById('profileViews').textContent = profileViews[user.profileLink] || 0;
+        }
+
+        // Показать отзывы
+        function showFeedback() {
+            userSection.style.display = 'none';
+            feedbackSection.style.display = 'block';
+
+            const userFeedbacks = feedbacks.filter(f => f.profileLink === currentUser.profileLink)
+                                          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            const feedbackList = document.getElementById('feedbackList');
+            const emptyFeedback = document.getElementById('emptyFeedback');
+
+            if (userFeedbacks.length === 0) {
+                emptyFeedback.style.display = 'block';
+                feedbackList.innerHTML = '';
+            } else {
+                emptyFeedback.style.display = 'none';
+                feedbackList.innerHTML = userFeedbacks.map(feedback => `
+                    <div class="feedback-item">
+                        <div class="feedback-text">${feedback.text}</div>
+                        <div class="feedback-meta">
+                            <span class="feedback-rating">${'★'.repeat(feedback.rating)}${'☆'.repeat(5 - feedback.rating)}</span>
+                            <span>${new Date(feedback.createdAt).toLocaleDateString('ru-RU')}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Установить рейтинг
+        function setRating(rating) {
+            currentRating = rating;
+            document.getElementById('feedbackRating').value = rating;
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                star.classList.toggle('active', index < rating);
+            });
+        }
+
+        // Копировать ссылку
+        function copyProfileLink() {
+            const linkInput = document.getElementById('profileLinkDisplay');
+            linkInput.select();
+            document.execCommand('copy');
+            showMessage(successMessage, 'Ссылка скопирована!');
+        }
+
+        // Закрыть модальное окно
+        function closeModal() {
+            feedbackModal.style.display = 'none';
+            document.getElementById('feedbackForm').reset();
+            currentRating = 0;
+            setRating(0);
+        }
+
+        // Выход
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            showRegister();
+            showMessage(successMessage, 'Вы вышли из системы');
+        }
+
+        // Регистрация
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            const userData = {
+                username: formData.get('username').trim(),
+                profileLink: formData.get('profileLink').trim().toLowerCase(),
+                email: formData.get('email').trim(),
+                password: formData.get('password')
+            };
+
+            try {
+                if (users.find(u => u.profileLink === userData.profileLink)) {
+                    throw new Error('Эта ссылка уже занята');
+                }
+                if (users.find(u => u.email === userData.email)) {
+                    throw new Error('Этот email уже используется');
+                }
+                if (!/^[a-z0-9-]+$/.test(userData.profileLink)) {
+                    throw new Error('Ссылка может содержать только английские буквы, цифры и дефисы');
+                }
+
+                const newUser = {
+                    id: Date.now(),
+                    ...userData,
+                    createdAt: new Date().toISOString()
+                };
+
+                users.push(newUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                currentUser = newUser;
+                localStorage.setItem('currentUser', JSON.stringify(newUser));
+                
+                showUser(newUser);
+                showMessage(successMessage, 'Профиль создан!');
+                this.reset();
+
+            } catch (error) {
+                showMessage(errorMessage, error.message);
+            }
+        });
+
+        // Вход
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            const login = formData.get('username').trim();
+            const password = formData.get('password');
+
+            const user = users.find(u => u.username === login || u.email === login);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showUser(user);
+                showMessage(successMessage, 'Вход выполнен!');
+                this.reset();
+            } else {
+                showMessage(errorMessage, 'Неверные данные');
+            }
+        });
+
+        // Отправка отзыва
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileLink = urlParams.get('profile');
+
+            if (profileLink) {
+                const feedback = {
+                    id: Date.now(),
+                    profileLink: profileLink,
+                    text: formData.get('feedback'),
+                    rating: currentRating,
+                    createdAt: new Date().toISOString()
+                };
+
+                feedbacks.push(feedback);
+                localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
+
+                if (!profileViews[profileLink]) {
+                    profileViews[profileLink] = 0;
+                }
+                profileViews[profileLink]++;
+                localStorage.setItem('profileViews', JSON.stringify(profileViews));
+
+                showMessage(successMessage, 'Отзыв отправлен!');
+                closeModal();
+            }
+        });
+
+        // Проверка URL параметров
+        function checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileLink = urlParams.get('profile');
+
+            if (profileLink) {
+                const user = users.find(u => u.profileLink === profileLink);
+                if (user) {
+                    feedbackModal.style.display = 'flex';
+                    if (!profileViews[profileLink]) {
+                        profileViews[profileLink] = 0;
+                    }
+                    profileViews[profileLink]++;
+                    localStorage.setItem('profileViews', JSON.stringify(profileViews));
+                } else {
+                    showMessage(errorMessage, 'Профиль не найден');
+                }
+            }
+        }
+
+        // Инициализация
+        function init() {
+            if (currentUser) {
+                showUser(currentUser);
+            } else {
+                showRegister();
+            }
+            checkUrlParams();
+        }
+
+        // Запуск при загрузке
+        document.addEventListener('DOMContentLoaded', init);
+        window.showRegister = showRegister;
+        window.showLogin = showLogin;
+        window.showUser = showUser;
+        window.showFeedback = showFeedback;
+        window.logout = logout;
+        window.copyProfileLink = copyProfileLink;
+        window.closeModal = closeModal;
+        window.setRating = setRating;
+    </script>
 </body>
 </html>
