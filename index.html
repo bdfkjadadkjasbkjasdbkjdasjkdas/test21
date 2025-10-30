@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FeedbackMe | Анонимные отзывы</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-comments floating"></i> FeedbackMe</h1>
+            <p>Получайте анонимные отзывы о себе</p>
+        </div>
+
+        <div class="content">
+            <!-- Сообщения -->
+            <div id="successMessage" class="message success-message"></div>
+            <div id="errorMessage" class="message error-message"></div>
+
+            <!-- Блок регистрации -->
+            <div id="registerSection">
+                <h2>Создать профиль для отзывов</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="regUsername"><i class="fas fa-user"></i> Ваше имя</label>
+                        <input type="text" id="regUsername" name="username" required autocomplete="off" placeholder="Как к вам обращаться">
+                    </div>
+                    <div class="form-group">
+                        <label for="regProfileLink"><i class="fas fa-link"></i> Ваша ссылка для отзывов</label>
+                        <div class="link-input-container">
+                            <span class="link-prefix">feedbackme.ru/</span>
+                            <input type="text" id="regProfileLink" name="profileLink" required autocomplete="off" placeholder="ivanov">
+                        </div>
+                        <small class="hint">Только английские буквы, цифры и дефисы</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail"><i class="fas fa-envelope"></i> Email (для уведомлений)</label>
+                        <input type="email" id="regEmail" name="email" required autocomplete="off" placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword"><i class="fas fa-lock"></i> Пароль</label>
+                        <input type="password" id="regPassword" name="password" required autocomplete="new-password" placeholder="Не менее 6 символов">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Создать профиль
+                    </button>
+                </form>
+                <div class="auth-switch">
+                    <span>Уже есть профиль? </span>
+                    <a class="auth-link" id="showLoginLink">Войдите здесь</a>
+                </div>
+            </div>
+
+            <!-- Блок входа -->
+            <div id="loginSection" style="display: none;">
+                <h2>Вход в профиль</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername"><i class="fas fa-user"></i> Имя пользователя или Email</label>
+                        <input type="text" id="loginUsername" name="username" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword"><i class="fas fa-lock"></i> Пароль</label>
+                        <input type="password" id="loginPassword" name="password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Войти в профиль
+                    </button>
+                </form>
+                <div class="auth-switch">
+                    <span>Нет профиля? </span>
+                    <a class="auth-link" id="showRegisterLink">Создайте его здесь</a>
+                </div>
+            </div>
+
+            <!-- Блок пользователя -->
+            <div id="userSection" style="display: none;">
+                <div class="user-info">
+                    <div class="avatar">
+                        <img src="" alt="User Avatar" id="userAvatar">
+                    </div>
+                    <h2 class="user-name" id="userName">Имя пользователя</h2>
+                    
+                    <div class="profile-link-card">
+                        <h3><i class="fas fa-share-alt"></i> Ваша ссылка для отзывов</h3>
+                        <div class="link-container">
+                            <input type="text" id="profileLinkDisplay" readonly class="link-display">
+                            <button class="btn-copy" id="copyLinkBtn" data-tooltip="Скопировать ссылку">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <p class="link-hint">Отправьте эту ссылку друзьям и коллегам для анонимных отзывов</p>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="feedbackCount">0</div>
+                            <div class="stat-label">Отзывов получено</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="profileViews">0</div>
+                            <div class="stat-label">Просмотров профиля</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary" id="viewFeedbackBtn">
+                        <i class="fas fa-comments"></i> Посмотреть мои отзывы
+                    </button>
+                    
+                    <button class="btn btn-danger" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+            </div>
+
+            <!-- Блок отзывов -->
+            <div id="feedbackSection" style="display: none;">
+                <div class="feedback-header">
+                    <button class="btn-back" id="backToProfileBtn">
+                        <i class="fas fa-arrow-left"></i> Назад к профилю
+                    </button>
+                    <h2>Отзывы о вас</h2>
+                </div>
+                
+                <div class="feedback-list" id="feedbackList">
+                    <!-- Отзывы будут здесь -->
+                </div>
+                
+                <div class="empty-state" id="emptyFeedback" style="display: none;">
+                    <i class="fas fa-comments"></i>
+                    <h3>Пока нет отзывов</h3>
+                    <p>Поделитесь своей ссылкой с друзьями и коллегами, чтобы получить первые отзывы</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для оставления отзыва -->
+    <div id="feedbackModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Оставить анонимный отзыв</h3>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="feedbackForm">
+                    <div class="form-group">
+                        <label for="feedbackText"><i class="fas fa-comment"></i> Ваш отзыв</label>
+                        <textarea id="feedbackText" name="feedback" required placeholder="Что вы думаете об этом человеке?..." rows="5"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedbackRating"><i class="fas fa-star"></i> Оценка (опционально)</label>
+                        <div class="rating-stars">
+                            <span class="star" data-rating="1">★</span>
+                            <span class="star" data-rating="2">★</span>
+                            <span class="star" data-rating="3">★</span>
+                            <span class="star" data-rating="4">★</span>
+                            <span class="star" data-rating="5">★</span>
+                        </div>
+                        <input type="hidden" id="feedbackRating" name="rating" value="0">
+                    </div>
+                    <div class="anonymous-notice">
+                        <i class="fas fa-user-secret"></i>
+                        <span>Этот отзыв будет полностью анонимным</span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Отправить отзыв
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
