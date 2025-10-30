@@ -1,171 +1,145 @@
-// Конфигурация JSONBin.io
-const JSONBIN_API_URL = 'https://api.jsonbin.io/v3/b';
-const JSONBIN_API_KEY = '$2a$10$TDffkTPxg.WQS47lRfa/ce2VaFi2cChpCCc3P0TvPeGYQdgkzZvna';
-let BIN_ID = null;
+// Supabase конфигурация
+const SUPABASE_URL = 'https://ztoswmpulbewadjvdfuu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0b3N3bXB1bGJld2FkanZkZnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MzQ0OTgsImV4cCI6MjA3NzQxMDQ5OH0.GY6yJ6zKrH-rJbtUmhAe5SJ3UE8AxADtTf1a2uwL7ys';
 
-// Локальные данные (кэш)
-let cloudData = {
-    users: {},
-    feedbacks: {},
-    profileViews: {}
-};
+// Создаем клиент Supabase
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Текущий пользователь
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 let currentRating = 0;
 
-// ==================== JSONBin.io ФУНКЦИИ ====================
-
-// Создать новую bin
-async function createBin() {
-    try {
-        console.log('Creating new bin...');
-        const response = await fetch(JSONBIN_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Master-Key': JSONBIN_API_KEY,
-                'X-Bin-Name': 'FeedbackMe Users Database'
-            },
-            body: JSON.stringify(cloudData)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        BIN_ID = result.metadata.id;
-        localStorage.setItem('jsonbin_id', BIN_ID);
-        console.log('Bin created:', BIN_ID);
-        return BIN_ID;
-    } catch (error) {
-        console.error('Error creating bin:', error);
-        return null;
-    }
-}
-
-// Загрузить данные из bin
-async function loadFromCloud() {
-    try {
-        console.log('Loading from cloud...');
-        
-        if (!BIN_ID) {
-            BIN_ID = localStorage.getItem('jsonbin_id');
-            console.log('BIN_ID from storage:', BIN_ID);
-        }
-        
-        if (!BIN_ID) {
-            console.log('No BIN_ID, creating new bin...');
-            return await createBin();
-        }
-        
-        const response = await fetch(`${JSONBIN_API_URL}/${BIN_ID}/latest`, {
-            headers: {
-                'X-Master-Key': JSONBIN_API_KEY
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        cloudData = result.record;
-        console.log('Data loaded from cloud. Users:', Object.keys(cloudData.users));
-        return true;
-    } catch (error) {
-        console.error('Error loading from cloud:', error);
-        console.log('Creating new bin due to error...');
-        return await createBin();
-    }
-}
-
-// Сохранить данные в bin
-async function saveToCloud() {
-    try {
-        if (!BIN_ID) {
-            BIN_ID = await createBin();
-        }
-        
-        const response = await fetch(`${JSONBIN_API_URL}/${BIN_ID}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Master-Key': JSONBIN_API_KEY
-            },
-            body: JSON.stringify(cloudData)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log('Data saved to cloud');
-        return true;
-    } catch (error) {
-        console.error('Error saving to cloud:', error);
-        return false;
-    }
-}
-
-// ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
-
-// Получить пользователя по ссылке
-function getUserByProfileLink(profileLink) {
-    console.log('Looking for profile:', profileLink, 'Available users:', Object.keys(cloudData.users));
-    return cloudData.users[profileLink];
-}
+// ==================== SUPABASE ФУНКЦИИ ====================
 
 // Создать пользователя
 async function createUser(userData) {
-    const newUser = {
-        id: Date.now(),
-        ...userData,
-        createdAt: new Date().toISOString()
-    };
-    
-    cloudData.users[userData.profileLink] = newUser;
-    const success = await saveToCloud();
-    
-    if (success) {
-        console.log('User created successfully:', userData.profileLink);
-        return newUser;
-    } else {
-        throw new Error('Ошибка сохранения в облако');
+    try {
+        const { data, error } = await supabaseClient
+            .from('users')
+            .insert([
+                {
+                    username: userData.username,
+                    profile_link: userData.profileLink,
+                    email: userData.email
+                }
+            ])
+            .select();
+
+        if (error) throw error;
+        return data[0];
+    } catch (error) {
+        console.error('Error creating user:', error);
+        throw error;
+    }
+}
+
+// Получить пользователя по ссылке
+async function getUserByProfileLink(profileLink) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('users')
+            .select('*')
+            .eq('profile_link', profileLink)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 - не найден
+        return data;
+    } catch (error) {
+        console.error('Error getting user:', error);
+        return null;
     }
 }
 
 // Добавить отзыв
 async function addFeedback(profileLink, feedbackData) {
-    if (!cloudData.feedbacks[profileLink]) {
-        cloudData.feedbacks[profileLink] = [];
+    try {
+        const { data, error } = await supabaseClient
+            .from('feedbacks')
+            .insert([
+                {
+                    profile_link: profileLink,
+                    text: feedbackData.text,
+                    rating: feedbackData.rating
+                }
+            ])
+            .select();
+
+        if (error) throw error;
+
+        // Обновляем счетчик просмотров
+        await incrementProfileViews(profileLink);
+        
+        return data[0];
+    } catch (error) {
+        console.error('Error adding feedback:', error);
+        throw error;
     }
-    
-    const feedback = {
-        id: Date.now(),
-        profileLink: profileLink,
-        text: feedbackData.text,
-        rating: feedbackData.rating,
-        createdAt: new Date().toISOString()
-    };
-    
-    cloudData.feedbacks[profileLink].push(feedback);
-    
-    if (!cloudData.profileViews[profileLink]) {
-        cloudData.profileViews[profileLink] = 0;
+}
+
+// Увеличить счетчик просмотров
+async function incrementProfileViews(profileLink) {
+    try {
+        // Сначала проверяем существует ли запись
+        const { data: existing } = await supabaseClient
+            .from('profile_views')
+            .select('*')
+            .eq('profile_link', profileLink)
+            .single();
+
+        if (existing) {
+            // Обновляем существующую запись
+            const { error } = await supabaseClient
+                .from('profile_views')
+                .update({ views_count: existing.views_count + 1 })
+                .eq('profile_link', profileLink);
+            if (error) throw error;
+        } else {
+            // Создаем новую запись
+            const { error } = await supabaseClient
+                .from('profile_views')
+                .insert([{ profile_link: profileLink, views_count: 1 }]);
+            if (error) throw error;
+        }
+    } catch (error) {
+        console.error('Error updating views:', error);
     }
-    cloudData.profileViews[profileLink]++;
-    
-    await saveToCloud();
-    return feedback;
 }
 
 // Получить отзывы пользователя
-function getFeedbacks(profileLink) {
-    return cloudData.feedbacks[profileLink] || [];
+async function getFeedbacks(profileLink) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('feedbacks')
+            .select('*')
+            .eq('profile_link', profileLink)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data || [];
+    } catch (error) {
+        console.error('Error getting feedbacks:', error);
+        return [];
+    }
 }
+
+// Получить количество просмотров
+async function getProfileViews(profileLink) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('profile_views')
+            .select('views_count')
+            .eq('profile_link', profileLink)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+        return data ? data.views_count : 0;
+    } catch (error) {
+        console.error('Error getting views:', error);
+        return 0;
+    }
+}
+
+// ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
 
 // Показать сообщение
 function showMessage(element, text) {
@@ -193,7 +167,7 @@ function showLogin() {
 }
 
 // Показать профиль пользователя
-function showUser(user) {
+async function showUser(user) {
     document.getElementById('registerSection').style.display = 'none';
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('userSection').style.display = 'block';
@@ -202,21 +176,23 @@ function showUser(user) {
     document.getElementById('userName').textContent = user.username;
     document.getElementById('userAvatar').src = `https://i.pravatar.cc/150?u=${user.id}`;
 
-    const fullLink = `${window.location.origin}${window.location.pathname}?profile=${user.profileLink}`;
+    const fullLink = `${window.location.origin}${window.location.pathname}?profile=${user.profile_link}`;
     document.getElementById('profileLinkDisplay').value = fullLink;
     
-    const userFeedbacks = getFeedbacks(user.profileLink);
+    // Загружаем статистику
+    const userFeedbacks = await getFeedbacks(user.profile_link);
+    const viewsCount = await getProfileViews(user.profile_link);
+    
     document.getElementById('feedbackCount').textContent = userFeedbacks.length;
-    document.getElementById('profileViews').textContent = cloudData.profileViews[user.profileLink] || 0;
+    document.getElementById('profileViews').textContent = viewsCount;
 }
 
 // Показать отзывы
-function showFeedback() {
+async function showFeedback() {
     document.getElementById('userSection').style.display = 'none';
     document.getElementById('feedbackSection').style.display = 'block';
 
-    const userFeedbacks = getFeedbacks(currentUser.profileLink)
-                          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const userFeedbacks = await getFeedbacks(currentUser.profile_link);
 
     const feedbackList = document.getElementById('feedbackList');
     const emptyFeedback = document.getElementById('emptyFeedback');
@@ -231,7 +207,7 @@ function showFeedback() {
                 <div class="feedback-text">${feedback.text}</div>
                 <div class="feedback-meta">
                     <span class="feedback-rating">${'★'.repeat(feedback.rating)}${'☆'.repeat(5 - feedback.rating)}</span>
-                    <span>${new Date(feedback.createdAt).toLocaleDateString('ru-RU')}</span>
+                    <span>${new Date(feedback.created_at).toLocaleDateString('ru-RU')}</span>
                 </div>
             </div>
         `).join('');
@@ -287,9 +263,12 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     };
 
     try {
-        if (getUserByProfileLink(userData.profileLink)) {
+        // Проверяем, свободна ли ссылка
+        const existingUser = await getUserByProfileLink(userData.profileLink);
+        if (existingUser) {
             throw new Error('Эта ссылка уже занята');
         }
+
         if (!/^[a-z0-9-]+$/.test(userData.profileLink)) {
             throw new Error('Ссылка может содержать только английские буквы, цифры и дефисы');
         }
@@ -299,7 +278,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         currentUser = newUser;
         localStorage.setItem('currentUser', JSON.stringify(newUser));
         
-        showUser(newUser);
+        await showUser(newUser);
         showMessage(document.getElementById('successMessage'), '🎉 Профиль создан! Теперь ссылка доступна везде!');
         this.reset();
 
@@ -309,26 +288,27 @@ document.getElementById('registerForm').addEventListener('submit', async functio
 });
 
 // Вход
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const formData = new FormData(this);
     
     const login = formData.get('username').trim();
-    const password = formData.get('password');
 
-    // Ищем пользователя по имени или email
-    const user = Object.values(cloudData.users).find(u => 
-        u.username === login || u.email === login
-    );
-    
-    if (user) {
-        currentUser = user;
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        showUser(user);
-        showMessage(document.getElementById('successMessage'), '✅ Вход выполнен!');
-        this.reset();
-    } else {
-        showMessage(document.getElementById('errorMessage'), 'Пользователь не найден');
+    try {
+        // Ищем пользователя по имени
+        const user = await getUserByProfileLink(login);
+        
+        if (user) {
+            currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            await showUser(user);
+            showMessage(document.getElementById('successMessage'), '✅ Вход выполнен!');
+            this.reset();
+        } else {
+            showMessage(document.getElementById('errorMessage'), 'Пользователь не найден');
+        }
+    } catch (error) {
+        showMessage(document.getElementById('errorMessage'), 'Ошибка при входе');
     }
 });
 
@@ -341,18 +321,22 @@ document.getElementById('feedbackForm').addEventListener('submit', async functio
     const profileLink = urlParams.get('profile');
 
     if (profileLink) {
-        const user = getUserByProfileLink(profileLink);
-        if (user) {
-            const feedbackData = {
-                text: formData.get('feedback'),
-                rating: currentRating
-            };
+        try {
+            const user = await getUserByProfileLink(profileLink);
+            if (user) {
+                const feedbackData = {
+                    text: formData.get('feedback'),
+                    rating: currentRating
+                };
 
-            await addFeedback(profileLink, feedbackData);
-            showMessage(document.getElementById('successMessage'), '✅ Отзыв отправлен!');
-            closeModal();
-        } else {
-            showMessage(document.getElementById('errorMessage'), `Профиль "${profileLink}" не найден. Создайте его сначала.`);
+                await addFeedback(profileLink, feedbackData);
+                showMessage(document.getElementById('successMessage'), '✅ Отзыв отправлен!');
+                closeModal();
+            } else {
+                showMessage(document.getElementById('errorMessage'), 'Профиль не найден');
+            }
+        } catch (error) {
+            showMessage(document.getElementById('errorMessage'), 'Ошибка при отправке отзыва');
         }
     }
 });
@@ -363,22 +347,17 @@ async function checkUrlParams() {
     const profileLink = urlParams.get('profile');
 
     if (profileLink) {
-        console.log('Checking URL param:', profileLink);
-        
-        // Ждем загрузки данных из облака
-        await loadFromCloud();
-        
-        const user = getUserByProfileLink(profileLink);
-        if (user) {
-            document.getElementById('feedbackModal').style.display = 'flex';
-            if (!cloudData.profileViews[profileLink]) {
-                cloudData.profileViews[profileLink] = 0;
+        try {
+            const user = await getUserByProfileLink(profileLink);
+            if (user) {
+                document.getElementById('feedbackModal').style.display = 'flex';
+                await incrementProfileViews(profileLink);
+            } else {
+                showMessage(document.getElementById('errorMessage'), 
+                    `Профиль "${profileLink}" не найден. Создайте его сначала.`);
             }
-            cloudData.profileViews[profileLink]++;
-            saveToCloud(); // Сохраняем просмотр
-        } else {
-            showMessage(document.getElementById('errorMessage'), 
-                `Профиль "${profileLink}" не найден. Создайте его сначала.`);
+        } catch (error) {
+            showMessage(document.getElementById('errorMessage'), 'Ошибка при загрузке профиля');
         }
     }
 }
@@ -387,13 +366,10 @@ async function checkUrlParams() {
 
 // Инициализация приложения
 async function init() {
-    console.log('Initializing app...');
-    
-    // Загружаем данные из облака
-    await loadFromCloud();
+    console.log('Initializing app with Supabase...');
     
     if (currentUser) {
-        showUser(currentUser);
+        await showUser(currentUser);
     } else {
         showRegister();
     }
